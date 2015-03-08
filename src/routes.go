@@ -6,6 +6,7 @@ import (
     "github.com/gorilla/mux"
 )
 
+// Model for one route item
 type Route struct {
     Name        string
     Method      string
@@ -13,22 +14,30 @@ type Route struct {
     HandlerFunc http.HandlerFunc
 }
 
+// Model for routes collection
 type Routes []Route
 
+// Decorator that wrap each req and log req info into cli
 func NewRouter() *mux.Router {
 
     router := mux.NewRouter().StrictSlash(true)
     for _, route := range routes {
+        var handler http.Handler
+
+        handler = route.HandlerFunc
+        handler = Logger(handler, route.Name)
+
         router.
             Methods(route.Method).
             Path(route.Pattern).
             Name(route.Name).
-            Handler(route.HandlerFunc)
+            Handler(handler)
     }
 
     return router
 }
 
+// Declare all routes
 var routes = Routes{
     Route{
         "Index",
